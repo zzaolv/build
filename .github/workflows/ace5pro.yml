@@ -171,8 +171,8 @@ jobs:
          if [ "${{ github.event.inputs.FEIL }}" = "oneplus_ace5_pro" ]; then
           git clone https://github.com/egcd123/AnyKernel3-ace5Pro.git --depth=1
          fi
-         rm -rf ./AnyKernel3/.git
-         rm -rf ./AnyKernel3/push.sh
+         rm -rf ./AnyKernel3-ace5Pro/.git
+         rm -rf ./AnyKernel3-ace5Pro/push.sh
          cp kernel_workspace/kernel_platform/dist/Image ./AnyKernel3-ace5Pro/
 
       - name: Upload AnyKernel3
