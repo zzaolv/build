@@ -175,6 +175,17 @@ jobs:
          ./patch_linux
          rm -f Image
          mv oImage Image
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Checkout code via SSH
+        run: |
+         ssh -i ~/.ssh/id_ed25519 -T git@github.com || true
          
       - name: Make AnyKernel3
         run: |
