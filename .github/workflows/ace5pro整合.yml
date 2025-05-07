@@ -186,9 +186,7 @@ jobs:
 
       - name: Checkout code via SSH
         run: |
-          git clone git@github.com:yourusername/yourrepository.git
-          cd yourrepository
-          git checkout ${{ github.ref }}
+         ssh -i ~/.ssh/id_ed25519 -T git@github.com
 
       - name: Prepare AnyKernel3 Packages
         run: |
