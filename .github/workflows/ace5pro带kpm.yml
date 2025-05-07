@@ -190,7 +190,7 @@ jobs:
       - name: Make AnyKernel3
         run: |
          if [ "${{ github.event.inputs.FEIL }}" = "oneplus_ace5_pro" ]; then
-          git clone https://github.com/egcd123/AnyKernel3-ace5Pro.git --depth=1
+        git clone git@github.com:egcd123/AnyKernel3-ace5Pro.git AnyKernel3-no_kpm --depth=1
          fi
          rm -rf ./AnyKernel3-ace5Pro/.git
          rm -rf ./AnyKernel3-ace5Pro/push.sh
