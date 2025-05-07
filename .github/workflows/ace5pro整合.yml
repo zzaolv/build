@@ -186,7 +186,8 @@ jobs:
 
       - name: Checkout code via SSH
         run: |
-         ssh -i ~/.ssh/id_ed25519 -T git@github.com
+         ssh -i ~/.ssh/id_ed25519 -T git@github.com || true
+
 
       - name: Prepare AnyKernel3 Packages
         run: |
