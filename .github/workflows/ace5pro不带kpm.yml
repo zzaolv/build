@@ -93,6 +93,7 @@ jobs:
            cp -r ../SukiSU_patch/other/lz4k/include/linux/* ./common/include/linux
            cp -r ../SukiSU_patch/other/lz4k/lib/* ./common/lib
            cp -r ../SukiSU_patch/other/lz4k/crypto/* ./common/crypto
+           cp -r ../SukiSU_patch/other/zram/lz4k_oplus ./common/lib/
            # Apply patches
            cd ./common
 
@@ -103,6 +104,14 @@ jobs:
            cp ../../SukiSU_patch/hooks/syscall_hooks.patch ./
            patch -p1 -F 3 < syscall_hooks.patch
            echo "完成"
+
+      - name: Apply lz4_oplus Patches
+        run: |
+          cd kernel_workspace/kernel_platform/common
+          cp ../../SukiSU_patch/other/zram/zram_patch/${{ github.event.inputs.KERNEL_VERSION }}/lz4k_oplus.patch ./
+          echo "正在打lz4k_oplus补丁"
+          patch -p1 -F 3 < lz4k_oplus.patch || true
+          echo '完成lz4k_oplus补丁'
 
       - name: Apply lz4kd Patches
         run: |
@@ -141,6 +150,7 @@ jobs:
           echo "CONFIG_CRYPTO_LZ4K=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_CRYPTO_LZ4KD=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_CRYPTO_842=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_CRYPTO_LZ4K_OPLUS=y" >> ./common/arch/arm64/configs/gki_defconfig
          
           # Remove check_defconfig
           sed -i 's/check_defconfig//' ./common/build.config.gki
