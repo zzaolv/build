@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       kernel_name:
-        description: "不输入则使用默认内核名"
+        description: "如果留空则使用默认内核名"
         required: false
-        default: ''
+        default: '-android15-8-g013ec21bba94-abogki383916444'
         type: string
       ace5pro_no_kpm:
         description: "ace5pro不带kpm"
