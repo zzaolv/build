@@ -1,4 +1,4 @@
-name: ace5pro不带kpm
+name: ace5pro_no_kpm
 on:
   workflow_call:
     inputs:
