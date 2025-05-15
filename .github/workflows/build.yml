@@ -18,7 +18,7 @@ on:
 
 jobs:
   ace5pro_no_kpm:
-    if: ${{ github.event.inputs.ace5pro_no_kpm == true }}
+    if: ${{ github.event.inputs.ace5pro_no_kpm == 'true' }}
     uses: ./.github/workflows/ace5pro_no_kpm.yml
     secrets: inherit
     with:
@@ -26,7 +26,7 @@ jobs:
       KERNEL_NAME: ${{ github.event.inputs.kernel_name || '-android15-8-g013ec21bba94-abogki383916444' }}
 
   ace5pro_kpm:
-    if: ${{ github.event.inputs.ace5pro_kpm == true }}
+    if: ${{ github.event.inputs.ace5pro_kpm == 'true' }}
     uses: ./.github/workflows/ace5pro_kpm.yml
     secrets: inherit
     with:
