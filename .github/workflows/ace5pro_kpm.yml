@@ -1,4 +1,4 @@
-name: ace5pro带kpm
+name: ace5pro_kpm
 on:
   workflow_call:
     inputs:
