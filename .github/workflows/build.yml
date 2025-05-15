@@ -8,11 +8,11 @@ on:
         default: ''
         type: string
       ace5pro_no_kpm:
-        description: "不带kpm"
+        description: "ace5pro不带kpm"
         type: boolean
         default: false
       ace5pro_kpm:
-        description: "带kpm"
+        description: "ace5pro带kpm"
         type: boolean
         default: false
 
