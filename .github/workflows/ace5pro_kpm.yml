@@ -222,8 +222,8 @@ jobs:
          curl -LO https://github.com/ShirkNeko/SukiSU_KernelPatch_patch/releases/download/0.11-beta/patch_linux
          chmod +x patch_linux
          ./patch_linux
-         mv oImage Image_kpm     
-         mv Image_original Image
+         rm -f Image
+         mv oImage Image
          
       - name: Set up SSH
         run: |
