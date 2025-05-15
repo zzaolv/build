@@ -8,11 +8,11 @@ on:
         required: false
         default: ''
       ace5pro不带kpm:
-        description: "Build ace5pro不带kpm"
+        description: "Build ace5pro_no_kpm"
         type: boolean
         default: false
       ace5pro带kpm:
-        description: "Build ace5pro带kpm"
+        description: "Build ace5pro_kpm"
         type: boolean
         default: false
 
