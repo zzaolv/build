@@ -1,0 +1,33 @@
+name: Build All
+on:
+  workflow_dispatch:
+    inputs:
+      kernel_name:
+        description: "如果留空则使用默认内核名"
+        required: false
+        default: '-android15-8-g013ec21bba94-abogki383916444'
+        type: string
+      ace5pro_no_kpm:
+        description: "ace5pro不带kpm"
+        type: boolean
+        default: false
+      ace5pro_kpm:
+        description: "ace5pro带kpm"
+        type: boolean
+        default: false
+
+jobs:
+  ace5pro_no_kpm:
+    if: ${{ github.event.inputs.ace5pro_no_kpm == 'true' }}
+    uses: ./.github/workflows/ace5pro_no_kpm.yml
+    secrets: inherit
+    with:
+      # 添加默认值保护
+      KERNEL_NAME: ${{ github.event.inputs.kernel_name || '-android15-8-g013ec21bba94-abogki383916444' }}
+
+  ace5pro_kpm:
+    if: ${{ github.event.inputs.ace5pro_kpm == 'true' }}
+    uses: ./.github/workflows/ace5pro_kpm.yml
+    secrets: inherit
+    with:
+      KERNEL_NAME: ${{ github.event.inputs.kernel_name || '-android15-8-g013ec21bba94-abogki383916444' }}
