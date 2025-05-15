@@ -3,29 +3,30 @@ on:
   workflow_dispatch:
     inputs:
       kernel_name:
-        description: "内核版本名 (不输入则默认)"
+        description: "不输入则使用默认内核名"
         required: false
         default: ''
-      ace5pro不带kpm:
-        description: "Build ace5pro不带kpm"
+        type: string
+      ace5pro_no_kpm:
+        description: "不带kpm"
         type: boolean
         default: false
-      ace5pro带kpm:
-        description: "Build ace5pro带kpm"
+      ace5pro_kpm:
+        description: "带kpm"
         type: boolean
         default: false
 
 jobs:
-     ace5pro_no_kpm:
-       if: ${{ github.event.inputs.ace5pro_no_kpm == 'true' }}
-       uses: ./.github/workflows/ace5pro_no_kpm.yml
-       secrets: inherit
-       with:
-         KERNEL_NAME: ${{ github.event.inputs.kernel_name }}
+  ace5pro_no_kpm:
+    if: ${{ inputs.ace5pro_no_kpm == true }}
+    uses: ./.github/workflows/ace5pro_no_kpm.yml
+    secrets: inherit
+    with:
+      KERNEL_NAME: ${{ inputs.kernel_name }}
 
-     ace5pro_kpm:
-       if: ${{ github.event.inputs.ace5pro_kpm == 'true' }}
-       uses: ./.github/workflows/ace5pro_kpm.yml
-       secrets: inherit
-       with:
-         KERNEL_NAME: ${{ github.event.inputs.kernel_name }}
+  ace5pro_kpm:
+    if: ${{ inputs.ace5pro_kpm == true }}
+    uses: ./.github/workflows/ace5pro_kpm.yml
+    secrets: inherit
+    with:
+      KERNEL_NAME: ${{ inputs.kernel_name }}
