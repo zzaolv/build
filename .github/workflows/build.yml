@@ -1,0 +1,17 @@
+name: Build All
+
+on:
+  workflow_dispatch:
+    inputs:
+      kernel_name:
+        description: "内核版本名 (不输入则默认)"
+        required: false
+        default: ''
+      ace5pro不带kpm:
+        description: "Build ace5pro不带kpm"
+        type: boolean
+        default: false
+      ace5pro带kpm:
+        description: "Build ace5pro带kpm"
+        type: boolean
+        default: false
