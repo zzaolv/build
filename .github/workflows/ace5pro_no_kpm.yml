@@ -231,7 +231,7 @@ jobs:
          git clone git@github.com:egcd123/AnyKernel3-ace5Pro.git AnyKernel3-no_kpm --depth=1
          rm -rf AnyKernel3-no_kpm/.git
          rm -f AnyKernel3-no_kpm/push.sh
-         cp kernel_workspace/kernel_platform/dist/Image ./AnyKernel3-no_kpm/
+         cp Image AnyKernel3-no_kpm/
                 
       - name: Upload AnyKernel3 (no_KPM)
         uses: actions/upload-artifact@v4

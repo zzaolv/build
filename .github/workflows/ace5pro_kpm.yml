@@ -222,8 +222,8 @@ jobs:
          curl -LO https://github.com/ShirkNeko/SukiSU_KernelPatch_patch/releases/download/0.11-beta/patch_linux
          chmod +x patch_linux
          ./patch_linux
-         mv oImage Image_kpm     
-         mv Image_original Image
+         rm -f Image
+         mv oImage Image
          
       - name: Set up SSH
         run: |
@@ -242,7 +242,7 @@ jobs:
          git clone git@github.com:egcd123/AnyKernel3-ace5Pro.git AnyKernel3-kpm --depth=1
          rm -rf AnyKernel3-kpm/.git
          rm -f AnyKernel3-kpm/push.sh
-         cp kernel_workspace/kernel_platform/dist/Image ./AnyKernel3-kpm/
+         cp Image AnyKernel3-kpm/
                          
       - name: Upload AnyKernel3 (KPM)
         uses: actions/upload-artifact@v4
