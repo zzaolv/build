@@ -147,6 +147,14 @@ jobs:
           sed -i 's/check_defconfig//' ./common/build.config.gki
           cd common
           git add -A && git commit -a -m "BUILD Kernel"
+
+      - name: build timestamp
+        run: |         
+         export SOURCE_DATE_EPOCH=$(date -d "2024-12-17 23:36:49 UTC" +%s)
+         if [ "${{ github.event.inputs.FEIL }}" = "oneplus_13t" ]; then
+         export SOURCE_DATE_EPOCH=$(date -d "2025-1-20 03:24:58 UTC" +%s)
+         fi
+         echo "SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH" >> $GITHUB_ENV
           
       - name: Add make name
         run: |
