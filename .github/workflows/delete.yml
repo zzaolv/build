@@ -1,12 +1,7 @@
 name: 清理所有工作流运行记录
-
 on:
   workflow_dispatch:
     inputs:
-      repo:
-        description: '清理的仓库(格式:用户名/仓库名)'
-        required: true
-        default: 'egcd521/build'
       count:
         description: '最多清理的运行次数（每个工作流）'
         required: false
@@ -48,9 +43,9 @@ jobs:
       - name: 认证 GitHub CLI
         run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
-      - name: 清理所有工作流运行记录
+      - name: 清理当前仓库的所有工作流运行记录
         env:
-          REPO: ${{ inputs.repo }}
+          REPO: ${{ github.repository }}  # 自动获取当前仓库
           COUNT: ${{ inputs.count }}
           DELETE_FAILED: ${{ inputs.delete_failed }}
           DELETE_SUCCESS: ${{ inputs.delete_success }}
@@ -59,6 +54,7 @@ jobs:
         run: |
           set -e
 
+          echo "当前仓库: $REPO"
           echo "获取所有工作流..."
           WORKFLOWS=$(gh api repos/$REPO/actions/workflows | jq -r '.workflows[] | .id')
           if [ -z "$WORKFLOWS" ]; then
