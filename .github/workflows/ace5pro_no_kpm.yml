@@ -117,15 +117,18 @@ jobs:
 
          cd kernel_workspace
          git clone --depth=1 https://gitlab.com/simonpunk/susfs4ksu.git -b gki-${{ inputs.ANDROID_VERSION }}-${{ inputs.KERNEL_VERSION }}
-         git clone --depth=1 https://github.com/ExmikoN/SukiSU_patch.git
+         git clone --depth=1 https://github.com/SukiSU-Ultra/SukiSU_patch.git
+         git clone --depth=1 https://github.com/egcd123/boot.git
          cd kernel_platform
          cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ inputs.ANDROID_VERSION }}-${{ inputs.KERNEL_VERSION }}.patch ./common/ || true
          mkdir -p ./common/fs ./common/include/linux ./common/lib ./common/crypto
          cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/ || true
          cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/ || true
-         cp -r ../SukiSU_patch/other/lz4k/include/linux/* ./common/include/linux || true
-         cp -r ../SukiSU_patch/other/lz4k/lib/* ./common/lib || true
-         cp -r ../SukiSU_patch/other/lz4k/crypto/* ./common/crypto || true
+         cp -r ../SukiSU_patch/other/zram/lz4k/include/linux/* ./common/include/linux || true
+         cp -r ../SukiSU_patch/other/zram/lz4k/lib/* ./common/lib || true
+         cp -r ../SukiSU_patch/other/zram/lz4k/crypto/* ./common/crypto || true
+         cp -r ../SukiSU_patch/other/zram/lz4k_oplus ./common/lib/ || true
+         cp ../boot/1.patch ./common/
          cd ./common
          PATCH_FILE=50_add_susfs_in_gki-${{ inputs.ANDROID_VERSION }}-${{ inputs.KERNEL_VERSION }}.patch
          if [[ -f "$PATCH_FILE" ]]; then
@@ -135,13 +138,14 @@ jobs:
          fi
          cp ../../SukiSU_patch/hooks/syscall_hooks.patch ./
          patch -p1 -F 3 < syscall_hooks.patch || true
+         patch -p1 -F 3 < 1.patch
          echo "✅ SUSFS 和 syscall_hooks patch 应用完成"
 
       - name: Apply lz4kd Patches
         run: |
          set -e
          cd kernel_workspace/kernel_platform/common
-         PATCH_FILE=../../SukiSU_patch/other/lz4k_patch/${{ inputs.KERNEL_VERSION }}/lz4kd.patch
+         PATCH_FILE=../../SukiSU_patch/other/zram/zram_patch/${{ inputs.KERNEL_VERSION }}/lz4kd.patch
          if [[ -f "$PATCH_FILE" ]]; then
          cp "$PATCH_FILE" ./lz4kd.patch
          patch -p1 -F 3 < lz4kd.patch || true
@@ -219,27 +223,16 @@ jobs:
          cd kernel_workspace/kernel_platform
          tools/bazel run --config=fast --config=stamp --lto=thin //common:kernel_aarch64_dist -- --dist_dir=dist
          
-      - name: Set up SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-
-      - name: Checkout code via SSH
-        run: |
-         ssh -i ~/.ssh/id_ed25519 -T git@github.com || true
-         
       - name: Prepare AnyKernel3 Packages
         run: |
          cd kernel_workspace/kernel_platform/dist
-         git clone git@github.com:egcd123/AnyKernel3-ace5Pro.git AnyKernel3-no_kpm --depth=1
-         rm -rf AnyKernel3-no_kpm/.git
-         rm -f AnyKernel3-no_kpm/push.sh
-         cp Image AnyKernel3-no_kpm/
-                
-      - name: Upload AnyKernel3 (no_KPM)
+         git clone https://github.com/egcd123/AnyKernel3.git AnyKernel3-no-kpm --depth=1
+         rm -rf AnyKernel3-no-kpm/.git
+         rm -f AnyKernel3-no-kpm/push.sh
+         cp Image AnyKernel3-kpm/
+                         
+      - name: Upload AnyKernel3 (no-KPM)
         uses: actions/upload-artifact@v4
         with:
-         name: AnyKernel3_oneplus_ace5pro_${{ env.KSUVER }}_no_kpm
-         path: kernel_workspace/kernel_platform/dist/AnyKernel3-no_kpm/*
+         name: AnyKernel3_oneplus_ace5pro_${{ env.KSUVER }}no_kpm
+         path: kernel_workspace/kernel_platform/dist/AnyKernel3-no-kpm/*
