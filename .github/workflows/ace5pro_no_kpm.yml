@@ -229,7 +229,7 @@ jobs:
          git clone https://github.com/egcd123/AnyKernel3.git AnyKernel3-no-kpm --depth=1
          rm -rf AnyKernel3-no-kpm/.git
          rm -f AnyKernel3-no-kpm/push.sh
-         cp Image AnyKernel3-kpm/
+         cp Image AnyKernel3-no-kpm/
                          
       - name: Upload AnyKernel3 (no-KPM)
         uses: actions/upload-artifact@v4
