@@ -1,4 +1,5 @@
 name: Build All
+
 on:
   workflow_dispatch:
     inputs:
@@ -6,6 +7,11 @@ on:
         description: "如果留空则使用默认内核名"
         required: false
         default: '-android15-8-g013ec21bba94-abogki383916444'
+        type: string
+      local_version:
+        description: '是否修改内核后缀名？ (默认"-4k")'
+        required: false
+        default: '-4k'
         type: string
       ace5pro_no_kpm:
         description: "ace5pro不带kpm"
@@ -38,8 +44,8 @@ jobs:
     uses: ./.github/workflows/ace5pro_no_kpm.yml
     secrets: inherit
     with:
-      # 添加默认值保护
       KERNEL_NAME: ${{ github.event.inputs.kernel_name || '-android15-8-g013ec21bba94-abogki383916444' }}
+      local_version: ${{ github.event.inputs.local_version || '-4k' }}
 
   ace5pro_kpm:
     if: ${{ github.event.inputs.ace5pro_kpm == 'true' }}
@@ -47,14 +53,15 @@ jobs:
     secrets: inherit
     with:
       KERNEL_NAME: ${{ github.event.inputs.kernel_name || '-android15-8-g013ec21bba94-abogki383916444' }}
+      local_version: ${{ github.event.inputs.local_version || '-4k' }}
 
   oneplus_13_no_kpm:
     if: ${{ github.event.inputs.oneplus_13_no_kpm == 'true' }}
     uses: ./.github/workflows/oneplus_13_no_kpm.yml
     secrets: inherit
     with:
-      # 添加默认值保护
       KERNEL_NAME: ${{ github.event.inputs.kernel_name || '-android15-8-g013ec21bba94-383916444' }}
+      local_version: ${{ github.event.inputs.local_version || '-4k' }}
 
   oneplus_13_kpm:
     if: ${{ github.event.inputs.oneplus_13_kpm == 'true' }}
@@ -62,14 +69,15 @@ jobs:
     secrets: inherit
     with:
       KERNEL_NAME: ${{ github.event.inputs.kernel_name || '-android15-8-g013ec21bba94-383916444' }}
-      
+      local_version: ${{ github.event.inputs.local_version || '-4k' }}
+
   oneplus_13t_no_kpm:
     if: ${{ github.event.inputs.oneplus_13t_no_kpm == 'true' }}
     uses: ./.github/workflows/oneplus_13t_no_kpm.yml
     secrets: inherit
     with:
-      # 添加默认值保护
       KERNEL_NAME: ${{ github.event.inputs.kernel_name || '-android15-8-g013ec21bba94-383916444' }}
+      local_version: ${{ github.event.inputs.local_version || '-4k' }}
 
   oneplus_13t_kpm:
     if: ${{ github.event.inputs.oneplus_13t_kpm == 'true' }}
@@ -77,3 +85,4 @@ jobs:
     secrets: inherit
     with:
       KERNEL_NAME: ${{ github.event.inputs.kernel_name || '-android15-8-g013ec21bba94-383916444' }}
+      local_version: ${{ github.event.inputs.local_version || '-4k' }}
