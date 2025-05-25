@@ -15,6 +15,22 @@ on:
         description: "ace5pro带kpm"
         type: boolean
         default: false
+      oneplus_13_no_kpm:
+        description: "oneplus_13不带kpm"
+        type: boolean
+        default: false
+      oneplus_13_kpm:
+        description: "oneplus_13带kpm"
+        type: boolean
+        default: false
+      oneplus_13t_no_kpm:
+        description: "oneplus_13t不带kpm"
+        type: boolean
+        default: false
+      oneplus_13t_kpm:
+        description: "oneplus_13t带kpm"
+        type: boolean
+        default: false
 
 jobs:
   ace5pro_no_kpm:
@@ -31,3 +47,33 @@ jobs:
     secrets: inherit
     with:
       KERNEL_NAME: ${{ github.event.inputs.kernel_name || '-android15-8-g013ec21bba94-abogki383916444' }}
+
+  oneplus_13_no_kpm:
+    if: ${{ github.event.inputs.oneplus_13_no_kpm == 'true' }}
+    uses: ./.github/workflows/oneplus_13_no_kpm.yml
+    secrets: inherit
+    with:
+      # 添加默认值保护
+      KERNEL_NAME: ${{ github.event.inputs.kernel_name || '-android15-8-g013ec21bba94-383916444' }}
+
+  oneplus_13_kpm:
+    if: ${{ github.event.inputs.oneplus_13_kpm == 'true' }}
+    uses: ./.github/workflows/oneplus_13_kpm.yml
+    secrets: inherit
+    with:
+      KERNEL_NAME: ${{ github.event.inputs.kernel_name || '-android15-8-g013ec21bba94-383916444' }}
+      
+  oneplus_13t_no_kpm:
+    if: ${{ github.event.inputs.oneplus_13t_no_kpm == 'true' }}
+    uses: ./.github/workflows/oneplus_13t_no_kpm.yml
+    secrets: inherit
+    with:
+      # 添加默认值保护
+      KERNEL_NAME: ${{ github.event.inputs.kernel_name || '-android15-8-g013ec21bba94-383916444' }}
+
+  oneplus_13t_kpm:
+    if: ${{ github.event.inputs.oneplus_13t_kpm == 'true' }}
+    uses: ./.github/workflows/oneplus_13t_kpm.yml
+    secrets: inherit
+    with:
+      KERNEL_NAME: ${{ github.event.inputs.kernel_name || '-android15-8-g013ec21bba94-383916444' }}
