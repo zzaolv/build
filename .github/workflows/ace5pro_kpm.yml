@@ -42,6 +42,9 @@ on:
         type: string
         required: false
         default: 'enable'
+      local_version:
+        required: false
+        type: string
 jobs:
   build:
     runs-on: ubuntu-latest
