@@ -28,8 +28,8 @@ on:
         default: '-android15-8-g013ec21bba94-abogki383916444'
       ENABLE_KPM:
         description: "启用kpm"
-        required: true
-        default: true
+        required: false
+        default: false
         type: boolean
 jobs:
   build:
@@ -161,7 +161,7 @@ jobs:
           git add -A && git commit -a -m "BUILD Kernel"
           
       - name: 启用kpm
-        if: ${{ github.event.inputs.ENABLE_KPM == true }}
+        if: ${{ fromJSON(github.event.inputs.ENABLE_KPM) }}
         run: |
          cd kernel_workspace/kernel_platform
          echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -194,7 +194,7 @@ jobs:
          tools/bazel run --config=fast --config=stamp --lto=thin //common:kernel_aarch64_dist -- --dist_dir=dist
 
       - name: Make AnyKernel3
-        if: ${{ github.event.inputs.ENABLE_KPM == true }}
+        if: ${{ fromJSON(github.event.inputs.ENABLE_KPM) }}
         run: |
          cd kernel_workspace/kernel_platform/dist/
          curl -LO https://github.com/ShirkNeko/SukiSU_KernelPatch_patch/releases/download/0.11-beta/patch_linux
