@@ -95,3 +95,7 @@ jobs:
     uses: ./.github/workflows/Manager.yml
     with:
       kernelsu_variant: 'SukiSU'
+    secrets: inherit
+    permissions:
+      contents: write
+      actions: read
