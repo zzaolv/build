@@ -46,9 +46,9 @@ jobs:
             FILENAME="build-manager.yml"
 
             BUILD_ID=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/$REPO/actions/workflows/$FILENAME/runs?status=success" | \
-            jq -r '.workflow_runs[0].id')
-
+            "https://api.github.com/repos/SukiSU-Ultra/SukiSU-Ultra/actions/workflows/build-manager.yml/runs?status=success" | \
+            jq -s -r '.workflow_runs[0].id')
+            
             echo 'BUILD_ID=$BUILD_ID'
             ARTIFACTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               "https://api.github.com/repos/$REPO/actions/runs/$BUILD_ID/artifacts")
