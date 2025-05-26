@@ -37,7 +37,7 @@ on:
         description: "oneplus_13t带kpm"
         type: boolean
         default: false
-      getsukisumanager:
+      GetSukiSUManager:
         description: "拉取最新管理器"
         type: boolean
         default: false
@@ -92,6 +92,6 @@ jobs:
       local_version: ${{ github.event.inputs.local_version || '-4k' }}
 
   getsukisumanager:
-    uses: ./.github/workflows/getsukisumanager.yml
+    uses: ./.github/workflows/GetSukiSUManager.yml
     with:
       kernelsu_variant: 'SukiSU'
