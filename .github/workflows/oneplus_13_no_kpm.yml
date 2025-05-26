@@ -1,4 +1,4 @@
-name: oneplus_13_no_kpm
+name: oneplus_13_no_kpm(分工作流)
 on:
   workflow_call:
     inputs:
