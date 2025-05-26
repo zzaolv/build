@@ -1,4 +1,4 @@
-name: Build All
+name: Build All(主工作流)
 
 on:
   workflow_dispatch:
