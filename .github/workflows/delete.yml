@@ -29,22 +29,22 @@ on:
 
 permissions:
   actions: write
+
 jobs:
   cleanup:
     runs-on: ubuntu-latest
-
     steps:
       - name: 安装 GitHub CLI 和 jq
         run: |
           sudo apt-get update
           sudo apt-get install -y gh jq
 
-      - name: 认证 GitHub CLI
+      - name: 登录 GitHub CLI
         run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
-      - name: 清理当前仓库的所有工作流运行记录
+      - name: 清理所有工作流运行记录
         env:
-          REPO: ${{ github.repository }}  # 自动获取当前仓库
+          REPO: ${{ github.repository }}
           COUNT: ${{ inputs.count }}
           DELETE_FAILED: ${{ inputs.delete_failed }}
           DELETE_SUCCESS: ${{ inputs.delete_success }}
@@ -54,44 +54,38 @@ jobs:
           set -e
 
           echo "当前仓库: $REPO"
-          echo "获取所有工作流..."
-          WORKFLOWS=$(gh api repos/$REPO/actions/workflows | jq -r '.workflows[] | .id')
-          if [ -z "$WORKFLOWS" ]; then
-            echo "未找到任何工作流，退出。"
-            exit 1
-          fi
+          echo "列出所有工作流..."
+          WORKFLOWS_JSON=$(gh api repos/$REPO/actions/workflows)
+          echo "$WORKFLOWS_JSON" | jq -r '.workflows[] | "工作流名称: \(.name), 文件路径: \(.path), ID: \(.id)"'
 
-          echo "开始清理所有工作流的运行记录..."
-          for WORKFLOW_ID in $WORKFLOWS; do
-            echo "处理工作流 ID: $WORKFLOW_ID"
+          WORKFLOW_IDS=$(echo "$WORKFLOWS_JSON" | jq -r '.workflows[].id')
 
-            echo "开始分页获取所有运行记录..."
+          for WORKFLOW_ID in $WORKFLOW_IDS; do
+            echo ""
+            echo "开始处理工作流 ID: $WORKFLOW_ID"
+
             PER_PAGE=100
             PAGE=1
             MATCHED_RUNS="[]"
+
             while true; do
               RESP=$(gh api "repos/$REPO/actions/workflows/$WORKFLOW_ID/runs?per_page=$PER_PAGE&page=$PAGE")
               RUNS=$(echo "$RESP" | jq '.workflow_runs')
               COUNT_THIS_PAGE=$(echo "$RUNS" | jq 'length')
-
-              if [ "$COUNT_THIS_PAGE" -eq 0 ]; then
-                break
-              fi
-
+              if [ "$COUNT_THIS_PAGE" -eq 0 ]; then break; fi
               MATCHED_RUNS=$(jq -s 'add' <(echo "$MATCHED_RUNS") <(echo "$RUNS"))
               PAGE=$((PAGE + 1))
             done
 
-            echo "共获取到 $(echo "$MATCHED_RUNS" | jq 'length') 条运行记录。"
+            echo "获取到运行记录数量: $(echo "$MATCHED_RUNS" | jq 'length')"
 
-            # 排序顺序：旧到新 or 新到旧
+            # 排序
             if [[ "$REVERSE_ORDER" == "true" ]]; then
               SORTED_RUNS=$(echo "$MATCHED_RUNS" | jq 'sort_by(.run_started_at)')
             else
               SORTED_RUNS=$(echo "$MATCHED_RUNS" | jq 'sort_by(.run_started_at) | reverse')
             fi
 
-            # 仅保留前 N 条
             TO_DELETE_RUNS=$(echo "$SORTED_RUNS" | jq ".[0:${COUNT}]")
 
             echo "$TO_DELETE_RUNS" | jq -c '.[]' | while read run; do
@@ -100,7 +94,7 @@ jobs:
               STATE=$(echo "$run" | jq -r '.status')
 
               if [[ "$STATE" == "in_progress" || "$STATE" == "queued" ]]; then
-                echo "跳过运行 ID: $ID（状态为 $STATE）"
+                echo "跳过运行 ID $ID（状态为 $STATE）"
                 continue
               fi
 
@@ -108,7 +102,7 @@ jobs:
               if [[ "$STATUS" == "success" && "$DELETE_SUCCESS" != "true" ]]; then continue; fi
               if [[ "$STATUS" == "cancelled" && "$DELETE_CANCELLED" != "true" ]]; then continue; fi
 
-              echo "删除运行记录 ID: $ID (状态: $STATUS)"
-              gh api -X DELETE "repos/$REPO/actions/runs/$ID" || echo "删除失败"
+              echo "删除运行记录 ID: $ID（状态: $STATUS）"
+              gh api -X DELETE "repos/$REPO/actions/runs/$ID" || echo "删除失败（ID: $ID）"
             done
           done
