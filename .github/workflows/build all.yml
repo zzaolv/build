@@ -92,6 +92,6 @@ jobs:
       local_version: ${{ github.event.inputs.local_version || '-4k' }}
 
   getsukisumanager:
-    uses: ./.github/workflows/GetSukiSUManager.yml
+    uses: ./.github/workflows/Manager.yml
     with:
       kernelsu_variant: 'SukiSU'
