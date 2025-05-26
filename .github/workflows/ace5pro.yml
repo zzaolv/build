@@ -1,4 +1,4 @@
-name: ace5pro带kpm
+name: ace5pro
 on:
   workflow_dispatch:
     inputs:
@@ -26,7 +26,11 @@ on:
         description: "修改内核名称"
         required: true
         default: '-android15-8-g013ec21bba94-abogki383916444'
-
+      ENABLE_KPM:
+        description: "启用kpm"
+        required: false
+        default: false
+        type: boolean
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -125,8 +129,6 @@ jobs:
         run: |
           cd kernel_workspace/kernel_platform
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
-
           # Add VFS configuration settings
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_MANUAL_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -158,6 +160,15 @@ jobs:
           cd common
           git add -A && git commit -a -m "BUILD Kernel"
           
+      - name: 启用kpm
+        if: ${{ github.event.inputs.ENABLE_KPM == true }}
+        run: |
+         cd kernel_workspace/kernel_platform
+         echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
+         sudo sed -i 's/check_defconfig//' ./common/build.config.gki
+         cd common
+         git add -A && git commit -a -m "BUILD Kernel"
+         
       - name: Add make name
         run: |
          cd kernel_workspace/kernel_platform
@@ -183,6 +194,7 @@ jobs:
          tools/bazel run --config=fast --config=stamp --lto=thin //common:kernel_aarch64_dist -- --dist_dir=dist
 
       - name: Make AnyKernel3
+        if: ${{ github.event.inputs.ENABLE_KPM == true }}
         run: |
          cd kernel_workspace/kernel_platform/dist/
          curl -LO https://github.com/ShirkNeko/SukiSU_KernelPatch_patch/releases/download/0.11-beta/patch_linux
@@ -194,13 +206,13 @@ jobs:
       - name: Prepare AnyKernel3 Packages
         run: |
          cd kernel_workspace/kernel_platform/dist
-         git clone https://github.com/egcd123/AnyKernel3.git AnyKernel3-kpm --depth=1
-         rm -rf AnyKernel3-kpm/.git
-         rm -f AnyKernel3-kpm/push.sh
+         git clone https://github.com/egcd123/AnyKernel3.git AnyKernel3 --depth=1
+         rm -rf AnyKernel3/.git
+         rm -f AnyKernel3/push.sh
          cp Image AnyKernel3-kpm/
                          
-      - name: Upload AnyKernel3 (KPM)
+      - name: Upload AnyKernel3
         uses: actions/upload-artifact@v4
         with:
-         name: AnyKernel3_oneplus_ace5pro_${{ env.KSUVER }}_kpm
-         path: kernel_workspace/kernel_platform/dist/AnyKernel3-kpm/*
+         name: AnyKernel3_oneplus_ace5pro_${{ env.KSUVER }}
+         path: kernel_workspace/kernel_platform/dist/AnyKernel3/*
