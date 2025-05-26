@@ -33,6 +33,7 @@ on:
         type: boolean
       local_version:
         required: false
+        default: '-4k'
         type: string
 jobs:
   build:
