@@ -1,4 +1,4 @@
-name: GetSukiSUManager
+name: GetSukiSUManager(分工作流)
 
 permissions:
   contents: write
