@@ -37,6 +37,10 @@ on:
         description: "oneplus_13t带kpm"
         type: boolean
         default: false
+      getsukisumanager:
+        description: "拉取最新管理器"
+        type: boolean
+        default: false
 
 jobs:
   ace5pro_no_kpm:
@@ -86,3 +90,8 @@ jobs:
     with:
       KERNEL_NAME: ${{ github.event.inputs.kernel_name || '-android15-8-g013ec21bba94-383916444' }}
       local_version: ${{ github.event.inputs.local_version || '-4k' }}
+
+  getsukisumanager:
+    uses: ./.github/workflows/getsukisumanager.yml
+    with:
+      kernelsu_variant: 'SukiSU'
