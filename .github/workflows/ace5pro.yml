@@ -32,6 +32,7 @@ on:
         default: false
         type: boolean
       local_version:
+        description: '是否修改内核后缀名？ (默认"-4k")'
         required: false
         default: '-4k'
         type: string
