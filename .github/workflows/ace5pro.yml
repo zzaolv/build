@@ -85,25 +85,19 @@ jobs:
       - name: Set up and inject custom SukiSU version
         run: |
          cd kernel_workspace/kernel_platform
-
          # 拉取 SukiSU
          curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
-
          cd KernelSU
-
-         # 设置你想要的版本号
+         # 设置版本号
          KSU_VERSION="13000"
          echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-
-         # 删除自动版本生成逻辑并注入你指定的版本
-         sed -i '/KSU_GIT_VERSION :=/,/endif/ {
-         /KSU_GIT_VERSION :=/d
-         /KSU_VERSION=/d
-         /-DKSU_VERSION=\$(KSU_VERSION)/d
-         /endif/d
-         a ccflags-y += -DKSU_VERSION='"$KSU_VERSION"
-         }' kernel/Makefile
-         
+         # 删除 Makefile 中动态生成版本的行
+         sed -i '/KSU_GIT_VERSION :=/d' kernel/Makefile
+         sed -i '/KSU_VERSION=/d' kernel/Makefile
+         sed -i '/-DKSU_VERSION=$(KSU_VERSION)/d' kernel/Makefile
+         sed -i '/endif/d' kernel/Makefile
+         # 插入固定版本号定义
+         echo "ccflags-y += -DKSU_VERSION=$KSU_VERSION" >> kernel/Makefile
          echo "✅ Injected manual SukiSU version: $KSU_VERSION"
 
       - name: Set up SUSFS & apply patches
