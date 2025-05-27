@@ -82,22 +82,29 @@ jobs:
          rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
          
-      - name: Set up and patch SukiSU with user-defined version
+      - name: Set up and inject custom SukiSU version
         run: |
          cd kernel_workspace/kernel_platform
 
-         # 下载并执行 SukiSU 安装脚本
+         # 拉取 SukiSU
          curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
-         
+
          cd KernelSU
 
-         # 读取用户输入的版本号
-         KSU_VERSION="${{ github.event.inputs.sukisu_version }}"
+         # 设置你想要的版本号
+         KSU_VERSION="13000"
          echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
 
-         # 替换 Makefile 中占位符为指定版本号
-         sed -i "s/DKSU_VERSION=REPLACE_ME_KSUVER/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
-         echo "✅ Injected SukiSU version: $KSU_VERSION"
+         # 删除自动版本生成逻辑并注入你指定的版本
+         sed -i '/KSU_GIT_VERSION :=/,/endif/ {
+         /KSU_GIT_VERSION :=/d
+         /KSU_VERSION=/d
+         /-DKSU_VERSION=\$(KSU_VERSION)/d
+         /endif/d
+         a ccflags-y += -DKSU_VERSION='"$KSU_VERSION"
+         }' kernel/Makefile
+         
+         echo "✅ Injected manual SukiSU version: $KSU_VERSION"
 
       - name: Set up SUSFS & apply patches
         run: |
