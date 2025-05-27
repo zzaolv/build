@@ -1,4 +1,4 @@
-name: ace5pro加入kpm可选(主工作流)
+name: ace5pro(娱乐自定义内核版本）
 on:
   workflow_dispatch:
     inputs:
@@ -36,6 +36,10 @@ on:
         required: false
         default: '-4k'
         type: string
+      sukisu_version:
+        description: "自定义sukisu版本号"
+        required: true
+        default: "13000"
         
 jobs:
   build:
@@ -79,15 +83,19 @@ jobs:
          rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
          
-      - name: Set up SukiSU
+      - name: Set up and inject custom SukiSU version
         run: |
          cd kernel_workspace/kernel_platform
          curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
-         cd ./KernelSU
-         KSU_VERSION=$(expr $(/usr/bin/git rev-list --count main) "+" 10606)
+         cd KernelSU
+         KSU_VERSION="${{ github.event.inputs.sukisu_version }}"
          echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-         export KSU_VERSION=$KSU_VERSION
-         sed -i "s/DKSU_VERSION=12800/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
+         sed -i "/ifeq.*\.git/,/endif/c\\
+         KSU_VERSION := $KSU_VERSION\\
+         ccflags-y += -DKSU_VERSION=\$(KSU_VERSION)\\
+         \$(info -- SukiSU version: \$(KSU_VERSION))
+         " kernel/Makefile
+         echo "✅ Injected SukiSU version: $KSU_VERSION"
 
       - name: Set up SUSFS & apply patches
         run: |
