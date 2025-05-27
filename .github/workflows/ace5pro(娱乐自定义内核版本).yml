@@ -97,7 +97,7 @@ jobs:
           sed -i "/ifeq.*\.git/,/endif/c\\
           KSU_VERSION := $KSU_VERSION\\
           ccflags-y += -DKSU_VERSION=\$(KSU_VERSION)\\
-          \$(info -- [Fixed] KernelSU version: \$(KSU_VERSION))
+          \$(info -- SukiSU version: $(KSU_VERSION))
           " kernel/Makefile
           echo "✅ Injected SukiSU version: $KSU_VERSION"
 
