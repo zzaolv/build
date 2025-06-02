@@ -1,4 +1,4 @@
-name: ace5pro加入kpm可选(o3,lto)
+name: ace5pro加入kpm可选(o3 lto)
 on:
   workflow_dispatch:
     inputs:
