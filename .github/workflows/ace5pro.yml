@@ -10,10 +10,6 @@ on:
         description: "配置文件"
         required: true
         default: 'oneplus_ace5_pro'
-      CPUD:
-        description: "处理器代号"
-        required: true
-        default: 'sun'
       ANDROID_VERSION:
         description: "内核安卓版本"
         required: true
@@ -46,6 +42,11 @@ on:
         required: false
         default: 'Tue Dec 17 23:36:49 UTC 2024'
         type: string
+      ENABLE_LTO:
+        description: '启用 LTO'
+        required: false
+        default: false
+        type: boolean
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -216,6 +217,16 @@ jobs:
          sudo sed -i 's/check_defconfig//' ./common/build.config.gki
          cd common
          git add -A && git commit -a -m "BUILD Kernel"
+
+      - name: 启用LTO
+        if: ${{ fromJSON(github.event.inputs.ENABLE_LTO) }}
+        run: |
+         cd kernel_workspace/kernel_platform
+         echo "CONFIG_LTO_CLANG=y" >> ./common/arch/arm64/configs/gki_defconfig
+         echo "CONFIG_LTO_CLANG_THIN=y" >> ./common/arch/arm64/configs/gki_defconfig
+         sudo sed -i 's/check_defconfig//' ./common/build.config.gki
+         cd common
+         git add -A && git commit -a -m "BUILD Kernel with LTO enabled"
 
       - name: Add make name
         run: |
