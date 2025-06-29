@@ -32,14 +32,19 @@ on:
         default: false
         type: boolean
       local_version:
-        description: '是否修改内核后缀名？ (默认"-4k")'
+        description: '输入内核后缀名（如-v8）'
         required: false
         default: '-4k'
         type: string
-      sukisu_version:
-        description: "自定义sukisu版本号"
-        required: true
-        default: "13000"
+      remove_default_4k:
+        description: '是否删除默认的 -4k 后缀？（勾选则删除）'
+        required: false
+        default: false
+        type: boolean
+      sukisu_tag:
+        description: "自定义版本来源后缀（如:见清）"
+        required: false
+        default: "见清🤣👉🏻🤡"
         
 jobs:
   build:
@@ -88,14 +93,17 @@ jobs:
          cd kernel_workspace/kernel_platform
          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
          cd KernelSU
-         KSU_VERSION="${{ github.event.inputs.sukisu_version }}"
+         # 获取自定义后缀（如：见清）
+         TAG_SUFFIX="${{ github.event.inputs.sukisu_tag }}"
+         # 使用正确变量名 KSU_VERSION_API 替换函数体
+         sed -i "/^define get_ksu_version_full$/,/^endef$/c\
+         define get_ksu_version_full\\
+         v\$(KSU_VERSION_API)-sukisu-\$(KSU_VERSION)-by-$TAG_SUFFIX\\
+         endef" kernel/Makefile
+         echo "✅ Injected custom version: v\$(KSU_VERSION_API)-sukisu-\$(KSU_VERSION)-by-$TAG_SUFFIX"
+         KSU_VERSION=$(expr $(/usr/bin/git rev-list --count main) "+" 10700)
          echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-         sed -i "/ifeq.*\.git/,/endif/c\\
-         KSU_VERSION := $KSU_VERSION\\
-         ccflags-y += -DKSU_VERSION=\$(KSU_VERSION)\\
-         \$(info -- SukiSU version: \$(KSU_VERSION))
-         " kernel/Makefile
-         echo "✅ Injected SukiSU version: $KSU_VERSION"
+         export KSU_VERSION=$KSU_VERSION
 
       - name: Set up SUSFS & apply patches
         run: |
