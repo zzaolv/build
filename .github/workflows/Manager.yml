@@ -34,7 +34,7 @@ jobs:
           git clone https://github.com/SukiSU-Ultra/SukiSU-Ultra.git
           cd SukiSU-Ultra
           GIT_COUNT=$(git rev-list --count HEAD)
-          KSU_VERSION=$((10000 + GIT_COUNT + 606))
+          KSU_VERSION=$((10000 + GIT_COUNT + 700))
           echo "KSU_VERSION=$KSU_VERSION" >> $GITHUB_ENV
 
       - name: 获取 SukiSU 最新构建的 manager artifact
