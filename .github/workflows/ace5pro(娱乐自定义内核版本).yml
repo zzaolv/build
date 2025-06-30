@@ -297,7 +297,7 @@ jobs:
          mkdir -p ../dist
          cp out/arch/arm64/boot/Image ../dist/
 
-      - name: Make AnyKernel3
+      - name: 打kpm补丁
         if: ${{ fromJSON(github.event.inputs.ENABLE_KPM) }}
         run: |
          cd kernel_workspace/kernel_platform/dist/
