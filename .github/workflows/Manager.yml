@@ -5,7 +5,7 @@ permissions:
   actions: read
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       kernelsu_variant:
         required: true
