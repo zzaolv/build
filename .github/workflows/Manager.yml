@@ -1,85 +1,71 @@
-name: GetSukiSUManager
-
-permissions:
-  contents: write
-  actions: read
+name: MainKernelBuild
 
 on:
   workflow_dispatch:
-    inputs:
-      kernelsu_variant:
-        required: true
-        type: string
 
 jobs:
-  get_sukisu_manager:
+  download_sukisu_manager:
+    name: 下载并上传 SukiSU 管理器
     runs-on: ubuntu-latest
+
     env:
-      CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
-      CCACHE_NOHASHDIR: "true"
-      CCACHE_HARDLINK: "true"
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
 
     steps:
       - name: 安装依赖
-        run: sudo apt update && sudo apt install -y git curl jq
+        run: sudo apt update && sudo apt install -y curl jq unzip
 
-      - name: 设定 SukiSU 环境变量
+      - name: 获取 GetSukiSUManager 最近一次成功构建的 ID
+        id: get_run
         run: |
-          if [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
-            echo "This is the SukiSU variant"
-            git clone https://github.com/SukiSU-Ultra/SukiSU-Ultra.git
-            cd SukiSU-Ultra
-            KSU_GIT_VERSION=$(git rev-list --count HEAD)
-            KSU_VERSION=$((10000 + KSU_GIT_VERSION + 606))
-            echo "KSU_VERSION=$KSU_VERSION" >> $GITHUB_ENV
-          else
-            echo "Only SukiSU is supported in this workflow"
+          WORKFLOW_FILE="GetSukiSUManager.yml"
+
+          echo "查询工作流运行 ID..."
+          RUNS_JSON=$(curl -s -H "Authorization: token $GH_TOKEN" \
+            "https://api.github.com/repos/$REPO/actions/workflows/$WORKFLOW_FILE/runs?status=success")
+
+          RUN_ID=$(echo "$RUNS_JSON" | jq -r '.workflow_runs[0].id')
+
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" == "null" ]; then
+            echo "未找到成功运行的 $WORKFLOW_FILE 工作流"
             exit 1
           fi
 
-      - name: 添加 SukiSU
+          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+
+      - name: 获取对应 Artifact 的下载地址
+        id: get_artifact
         run: |
-          if [ "${{ inputs.kernelsu_variant }}" == "SukiSU" ]; then
-            echo "SukiSU..."
-            REPO="SukiSU-Ultra/SukiSU-Ultra"
-            FILENAME="build-manager.yml"
+          RUN_ID=${{ steps.get_run.outputs.run_id }}
 
-            # 修复：移除 jq 的 -s 参数
-            BUILD_ID=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/SukiSU-Ultra/SukiSU-Ultra/actions/workflows/build-manager.yml/runs?status=success" | \
-              jq -r '.workflow_runs[0].id')
+          echo "查询 Run ID = $RUN_ID 的 artifact..."
 
-            # 检查 BUILD_ID 是否有效
-            if [ -z "$BUILD_ID" ] || [ "$BUILD_ID" == "null" ]; then
-              echo "Error: No successful build found!"
-              exit 1
-            fi
+          ARTIFACTS=$(curl -s -H "Authorization: token $GH_TOKEN" \
+            "https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/artifacts")
 
-            echo "BUILD_ID=$BUILD_ID"
-            ARTIFACTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/$REPO/actions/runs/$BUILD_ID/artifacts")
-            echo "ARTIFACTS=$ARTIFACTS"
+          DL_URL=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name | startswith("SukiSU-Manager")) | .archive_download_url')
 
-            DOWNLOAD_URL=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name == "manager") | .archive_download_url')
-
-            # 检查 DOWNLOAD_URL 是否有效
-            if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" == "null" ]; then
-              echo "Error: Artifact 'manager' not found!"
-              exit 1
-            fi
-
-            # 下载并解压
-            curl -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o "SukiSU-管理器-${{ env.KSU_VERSION }}.zip" "$DOWNLOAD_URL"
-            echo "Manager 文件已下载为：SukiSU-管理器-${{ env.KSU_VERSION }}.zip"
-            unzip "SukiSU-管理器-${{ env.KSU_VERSION }}.zip"
-          else
-            echo "Only SukiSU is supported in this workflow"
+          if [ -z "$DL_URL" ] || [ "$DL_URL" == "null" ]; then
+            echo "未找到 SukiSU 管理器 Artifact"
             exit 1
           fi
 
-      - name: 上传编译资产
+          echo "download_url=$DL_URL" >> $GITHUB_OUTPUT
+
+      - name: 下载并解压管理器 APK
+        run: |
+          DL_URL="${{ steps.get_artifact.outputs.download_url }}"
+          curl -L -H "Authorization: token $GH_TOKEN" -o sukisu-manager.zip "$DL_URL"
+
+          echo "下载完成，开始解压..."
+          unzip sukisu-manager.zip -d sukisu-manager
+
+          echo "以下是解压后的文件："
+          ls -l sukisu-manager
+
+      - name: 上传解压后的 APK
         uses: actions/upload-artifact@v4
         with:
-          name: SukiSU-Manager-${{ env.KSU_VERSION }}
-          path: "*.apk"  # 根据实际解压后的文件调整
+          name: SukiSU-Manager-From-Main
+          path: sukisu-manager/*.apk
