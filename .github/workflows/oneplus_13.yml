@@ -256,12 +256,7 @@ jobs:
         run: |         
          export SOURCE_DATE_EPOCH=$(date -d "Tue Dec 17 23:36:49 UTC 2024" +%s)
          echo "SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH" >> $GITHUB_ENV
-
-      - name: 拉取afdo
-        run: |
-          cd kernel_workspace/kernel_platform/
-          git clone https://github.com/egcd521/afdo.git
-   
+         
       # 4. 编译内核   
       - name: Build Kernel
         run: |
@@ -274,25 +269,16 @@ jobs:
          export KERNEL_TIME="Tue Dec 17 23:36:49 UTC 2024"
          export KBUILD_BUILD_TIMESTAMP="$KERNEL_TIME"
          export SOURCE_DATE_EPOCH=$(date -d "$KERNEL_TIME" +%s)
-         # 设置 AFDO 配置文件路径
-         export AFDO_PROFILE="${{ github.workspace }}/kernel_workspace/kernel_platform/afdo/kernel.afdo"
-         if [ ! -f "$AFDO_PROFILE" ]; then
-           echo "Error: AFDO profile not found at $AFDO_PROFILE"
-         exit 1
-         fi
-
          # 打印验证
          echo "KERNEL_TIME = $KERNEL_TIME"
          echo "SOURCE_DATE_EPOCH = $SOURCE_DATE_EPOCH"
-         echo "Using KCFLAGS: -Wno-error -fauto-profile=$AFDO_PROFILE"
-
          # 设置一些通用参数（便于后续维护）
-         export KCFLAGS="-Wno-error -fauto-profile=$AFDO_PROFILE"
          export MAKE_ARGS="LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang \
          RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc \
          PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole \
-         LD=ld.lld HOSTLD=ld.lld O=out SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
-
+         LD=ld.lld HOSTLD=ld.lld O=out KCFLAGS=-Wno-error \
+         SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
+         echo "Using SOURCE_DATE_EPOCH: $SOURCE_DATE_EPOCH"
          # 进入源码目录
          cd kernel_workspace/kernel_platform/common
 
@@ -305,21 +291,22 @@ jobs:
          # 创建输出目录并复制 Image
          mkdir -p ../dist
          cp out/arch/arm64/boot/Image ../dist/
+         cp out/vmlinux ../dist/
 
       - name: 验证内核构建时间
         run: |
          strings kernel_workspace/kernel_platform/common/out/vmlinux | grep "UTC"
 
-      - name: Make AnyKernel3 patch (optional)
+      - name: 打kpm补丁
         if: ${{ fromJSON(github.event.inputs.ENABLE_KPM) }}
         run: |
-          cd kernel_workspace/kernel_platform/dist
-          curl -LO https://github.com/ShirkNeko/SukiSU_KernelPatch_patch/releases/download/0.11-beta/patch_linux
-          chmod +x patch_linux
-          ./patch_linux
-          rm -f Image
-          mv oImage Image
-
+         cd kernel_workspace/kernel_platform/dist
+         curl -LO https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/0.12.0/patch_linux
+         chmod +x patch_linux
+         ./patch_linux
+         rm -f Image
+         mv oImage Image
+         
       - name: Prepare AnyKernel3 package
         run: |
           cd kernel_workspace/kernel_platform/dist
