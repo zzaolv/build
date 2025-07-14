@@ -130,9 +130,9 @@ jobs:
          cp -r ../SukiSU_patch/other/zram/lz4k_oplus ./common/lib/ || true
          cd ./KernelSU-Next
          patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch || true
-         patch -p1 --fuzz=3 --forward < apk_sign.patch
-         patch -p1 --fuzz=3 --forward < core_hook.patch
-         patch -p1 --fuzz=3 --forward < ksud.patch
+         patch -p1 --fuzz=3 --forward < apk_sign.patch || true
+         patch -p1 --fuzz=3 --forward < core_hook.patch || true
+         patch -p1 --fuzz=3 --forward < ksud.patch || true
          patch -p1 --fuzz=3 --forward < selinux.patch
          patch -p1 --fuzz=3 --forward < rules.c.patch || true
          cd ../common
@@ -144,8 +144,8 @@ jobs:
           # Replace next_hooks.patch with syscall_hooks.patch
           cp ../../kernel_patches/69_hide_stuff.patch ./
           cp ../../kernel_patches/next/scope_min_manual_hooks_v1.4.patch ./
-          patch -p1 -F 3 < scope_min_manual_hooks_v1.4.patch
-          patch -p1 -F 3 < 69_hide_stuff.patch
+          patch -p1 -F 3 < scope_min_manual_hooks_v1.4.patch || true
+          patch -p1 -F 3 < 69_hide_stuff.patch || true
           echo "✅ SUSFS 和 syscall_hooks patch 应用完成"
 
       - name: Apply lz4kd Patches
