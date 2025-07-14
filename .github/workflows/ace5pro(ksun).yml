@@ -37,11 +37,6 @@ on:
         required: false
         default: 'Tue Dec 17 23:36:49 UTC 2024'
         type: string
-      ENABLE_LTO:
-        description: '启用 LTO'
-        required: false
-        default: false
-        type: boolean
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -81,7 +76,7 @@ jobs:
         uses: actions/cache@v3
         with:
          path: /home/runner/.ccache
-         key: ${{ runner.os }}-${{ github.repository }}-v3
+         key: ${{ runner.os }}-${{ github.repository }}-v1_ksun
          restore-keys: |
           ${{ runner.os }}-${{ github.repository }}-
           ${{ runner.os }}-
@@ -129,16 +124,17 @@ jobs:
       - name: Set up SUSFS & apply patches
         run: |
          set -e
-
          cd kernel_workspace
-         git clone --depth=1 https://gitlab.com/simonpunk/susfs4ksu.git -b gki-${{ inputs.ANDROID_VERSION }}-${{ inputs.KERNEL_VERSION }}
+         git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-${{ inputs.ANDROID_VERSION }}-${{ inputs.KERNEL_VERSION }}
          git clone --depth=1 https://github.com/SukiSU-Ultra/SukiSU_patch.git
-         git clone --depth=1 https://github.com/egcd123/boot.git
+         git clone https://$TOKEN@github.com/egcd521/111.git
          git clone https://github.com/WildPlusKernel/kernel_patches.git
+         git clone https://github.com/zzh20188/GKI_KernelSU_SUSFS.git zzh_patch
+         git clone --depth=1 https://github.com/egcd123/boot.git
          cd kernel_platform
          cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch ./common/
-         cp ../kernel_patches/next/syscall_hooks.patch ./common/
-         cp ../kernel_patches/next/0001-kernel-implement-susfs-v1.5.8-KernelSU-Next-v1.0.8.patch ./KernelSU-Next/
+         cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU-Next/
+         cp ../zzh_patch/next-patch/* ./KernelSU-Next/
          cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
          cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
          cp -r ../SukiSU_patch/other/zram/lz4k/include/linux/* ./common/include/linux || true
@@ -147,7 +143,12 @@ jobs:
          cp -r ../SukiSU_patch/other/zram/lz4k_oplus ./common/lib/ || true
          cp ../boot/1.patch ./common/
          cd ./KernelSU-Next
-         patch -p1 < 0001-kernel-implement-susfs-v1.5.8-KernelSU-Next-v1.0.8.patch || true
+         patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch || true
+         patch -p1 --fuzz=3 --forward < apk_sign.patch
+         patch -p1 --fuzz=3 --forward < core_hook.patch
+         patch -p1 --fuzz=3 --forward < ksud.patch
+         patch -p1 --fuzz=3 --forward < selinux.patch
+         patch -p1 --fuzz=3 --forward < rules.c.patch
          cd ../common
          if [[ "${{ github.event.inputs.FEIL }}" == "oneplus_13" || "${{ github.event.inputs.FEIL }}" == "oneplus_ace5_pro" ]]; then
            sed -i 's/-32,12 +32,38/-32,11 +32,37/g' 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch
@@ -156,8 +157,9 @@ jobs:
           patch -p1 < 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch || true
           # Replace next_hooks.patch with syscall_hooks.patch
           cp ../../kernel_patches/69_hide_stuff.patch ./
+          cp ../../kernel_patches/next/scope_min_manual_hooks_v1.4.patch ./
+          patch -p1 -F 3 < scope_min_manual_hooks_v1.4.patch
           patch -p1 -F 3 < 69_hide_stuff.patch
-          patch -p1 -F 3 < syscall_hooks.patch
           patch -p1 -F 3 < 1.patch
           echo "✅ SUSFS 和 syscall_hooks patch 应用完成"
 
@@ -200,19 +202,11 @@ jobs:
           echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_LTO_CLANG=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_LTO_CLANG_THIN=y" >> ./common/arch/arm64/configs/gki_defconfig
           sed -i 's/check_defconfig//' ./common/build.config.gki
           cd common
           git add -A && git commit -a -m "BUILD Kernel"
-
-      - name: 启用LTO
-        if: ${{ fromJSON(github.event.inputs.ENABLE_LTO) }}
-        run: |
-         cd kernel_workspace/kernel_platform
-         echo "CONFIG_LTO_CLANG=y" >> ./common/arch/arm64/configs/gki_defconfig
-         echo "CONFIG_LTO_CLANG_THIN=y" >> ./common/arch/arm64/configs/gki_defconfig
-         sudo sed -i 's/check_defconfig//' ./common/build.config.gki
-         cd common
-         git add -A && git commit -a -m "BUILD Kernel with LTO enabled"
 
       - name: Add make name
         run: |
@@ -237,17 +231,17 @@ jobs:
          git clone https://github.com/egcd123/sched_ext.git
          cp -r ./sched_ext/* ./common/kernel/sched
          rm -rf ./sched_ext/.git
-            
+
       - name: 拉取afdo
         run: |
           cd kernel_workspace/kernel_platform/
           git clone https://github.com/egcd521/afdo.git
-            
+
       - name: Set build timestamp
         run: |         
          export SOURCE_DATE_EPOCH=$(date -d "Tue Dec 17 23:36:49 UTC 2024" +%s)
          echo "SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH" >> $GITHUB_ENV
-
+   
       - name: Build Kernel
         run: |
          # 加入 clang 到 PATH
@@ -306,5 +300,5 @@ jobs:
       - name: Upload AnyKernel3 artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AnyKernel3_oneplus_ace5pro_${{ env.KSUVER }}
+          name: AnyKernel3_oneplus_ace5pro_${{ env.KSUVER }}_ksun
           path: kernel_workspace/kernel_platform/dist/AnyKernel3/*
