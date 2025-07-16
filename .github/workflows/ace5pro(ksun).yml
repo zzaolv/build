@@ -160,6 +160,8 @@ jobs:
           patch -p1 -F 3 < 69_hide_stuff.patch
           patch -p1 -F 3 < 1.patch
           echo "✅ SUSFS 和 syscall_hooks patch 应用完成"
+          # 修复next报错
+          sed -i '/^static inline int ksu_access_ok/,/^}/ s/^/\/\//' drivers/kernelsu/kernel_compat.c
 
       - name: Apply lz4kd Patches
         run: |
